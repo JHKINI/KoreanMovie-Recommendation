@@ -1,0 +1,96 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fb;
+  color: #222;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  background-color: white;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.hero h1 {
+  margin-bottom: 16px;
+  font-size: 42px;
+}
+
+.hero p {
+  margin-bottom: 36px;
+  color: #666;
+  font-size: 17px;
+}
+
+.search-box {
+  display: flex;
+  max-width: 600px;
+  margin: 0 auto;
+  gap: 10px;
+}
+
+.search-box input {
+  flex: 1;
+  height: 52px;
+  padding: 0 18px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.search-box button {
+  width: 90px;
+  border: none;
+  border-radius: 8px;
+  background-color: #222;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  opacity: 0.8;
+}
+
+.info-section {
+  margin-top: 40px;
+  padding: 32px;
+  background-color: white;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.info-section h2 {
+  margin-top: 0;
+}
+
+.info-section p {
+  color: #666;
+}
