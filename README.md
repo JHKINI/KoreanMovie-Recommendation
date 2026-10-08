@@ -316,6 +316,7 @@ KoreanMovie-Recommendation/
 ## 📊 Data
 
 본 프로젝트는 한국 영화 리뷰 및 영화 정보를 활용합니다.
+출처: https://www.kaggle.com/datasets/suminwang/korean-movie-review-data-30kbert
 
 > **주의:** 프로젝트 폴더명은 `NSMC`이지만, 현재 사용 데이터는 일반적으로 알려진 NSMC 감성분류 데이터셋과 동일한 형태의 이진 감성 데이터가 아닙니다.
 
