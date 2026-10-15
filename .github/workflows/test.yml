@@ -1,0 +1,55 @@
+name: tests
+
+# main에 올리거나 PR을 만들 때마다 자동 테스트를 실행한다.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.lock.txt
+
+      # 검증에 사용한 패키지 버전 그대로 설치한다.
+      - name: Install dependencies
+        run: pip install -r requirements.lock.txt pytest
+
+      # 원본 CSV와 artifacts/는 저장소에 없다. 가상 데이터를 쓰는 테스트(2026-10-11 기준 67개)가 실행되고,
+      # 저장 데이터가 필요한 test_api_contract.py(37개)는 자동으로 건너뛴다.
+      - name: Run tests
+        run: python -m pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # package-lock.json의 버전 그대로 설치한다(설치 스크립트는 실행하지 않는다).
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

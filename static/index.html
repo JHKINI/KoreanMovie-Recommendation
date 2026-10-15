@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>한국 영화 추천</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --surface: #ffffff; --text: #1d1d1f; --muted: #6b6b70; --line: #e4e2dc;
+    --accent: #b3261e; --accent-soft: #fbe9e7; --star: #c77700; --radius: 12px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151517; --surface: #1f1f23; --text: #f2f2f3; --muted: #a0a0a8; --line: #333338;
+            --accent: #ff7a70; --accent-soft: #3a2220; --star: #f0b04a; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
+  header h1 a { color: inherit; text-decoration: none; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  .search { margin: 20px 0 8px; display: flex; gap: 8px; }
+  .search input { flex: 1; min-width: 0; padding: 12px 14px; font: inherit; color: var(--text);
+                  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+  .search input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+          padding: 14px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+  .card:hover, .card:focus-visible { border-color: var(--accent); outline: none; }
+  .card h3 { margin: 0 0 4px; font-size: 16px; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .rating { color: var(--star); font-weight: 600; }
+  .back { display: inline-block; margin-bottom: 12px; color: var(--accent); text-decoration: none; font-size: 14px; }
+  .hero { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .hero h2 { margin: 0 0 6px; font-size: 24px; letter-spacing: -0.02em; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 14px; }
+  .stat b { display: block; font-size: 20px; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .tabs { display: flex; gap: 6px; margin: 24px 0 12px; }
+  .tab { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface);
+         font: inherit; color: var(--text); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .seg { display: flex; gap: 6px; margin-bottom: 12px; }
+  .seg .tab { padding: 5px 12px; font-size: 13px; }
+  .reco { display: grid; gap: 10px; }
+  .reco .card { display: block; width: 100%; }
+  .reasons { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  .review { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px; }
+  .review p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .notice { background: var(--accent-soft); border-radius: var(--radius); padding: 12px 14px; }
+  .error { background: var(--accent-soft); color: var(--accent); border-radius: var(--radius); padding: 12px 14px; }
+  .loading { color: var(--muted); padding: 16px 0; }
+  .note { color: var(--muted); font-size: 12px; margin-top: 28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><a href="#/">한국 영화 추천</a></h1>
+    <p>리뷰 글 표현, 장르·메타데이터, 평점을 함께 본 콘텐츠 기반 추천</p>
+  </header>
+  <main id="view"></main>
+  <p class="note" id="footer"></p>
+</div>
+
+<script>
+const view = document.getElementById('view');
+let searchTimer = null;
+let navToken = 0;
+
+/* ---------- 공통 ---------- */
+function el(tag, props = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(props)) {
+    if (key === 'class') node.className = value;
+    else if (key.startsWith('on')) node.addEventListener(key.slice(2), value);
+    else node.setAttribute(key, value);
+  }
+  for (const child of children.flat()) {
+    if (child === null || child === undefined || child === false) continue;
+    node.append(child.nodeType ? child : document.createTextNode(String(child)));
+  }
+  return node;
+}
+
+// 오류 detail은 404=문자열, 409=객체, 422=배열이라 모양에 따라 문구를 만든다.
+function errorText(status, detail) {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) return '입력값이 올바르지 않습니다. (' + (detail[0]?.loc?.slice(-1)[0] ?? '?') + ')';
+  if (detail && typeof detail === 'object' && detail.message) return detail.message;
+  return '요청을 처리하지 못했습니다. (' + status + ')';
+}
+
+async function api(path, params = {}) {
+  const query = new URLSearchParams(params).toString();
+  let response;
+  try {
+    response = await fetch(path + (query ? '?' + query : ''));
+  } catch (error) {
+    throw new Error('서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요.');
+  }
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(errorText(response.status, body.detail));
+  return body;
+}
+
+function ratingText(movie) {
+  return movie.mean_rating === null ? '평점 없음' : '★ ' + movie.mean_rating.toFixed(1);
+}
+
+function metaLine(movie) {
+  const date = movie.release_date
+    ? movie.release_date.slice(0, 4) + '.' + movie.release_date.slice(4, 6) + '.' + movie.release_date.slice(6, 8)
+    : null;
+  return [movie.genre, movie.director, date].filter(Boolean).join(' · ') || '정보 없음';
+}
+
+function movieCard(movie, extra) {
+  return el('button', { class: 'card', type: 'button', onclick: () => { location.hash = '#/movie/' + movie.movie_id; } },
+    el('h3', {}, movie.title),
+    el('div', { class: 'meta' }, metaLine(movie)),
+    el('div', { class: 'meta' }, el('span', { class: 'rating' }, ratingText(movie)), ' · 리뷰 ' + movie.review_count + '개'),
+    extra);
+}
+
+const showLoading = (text) => view.replaceChildren(el('div', { class: 'loading' }, text));
+const showError = (error) => view.replaceChildren(
+  el('div', { class: 'error' }, error.message),
+  el('p', {}, el('a', { class: 'back', href: '#/' }, '← 처음으로')));
+
+/* ---------- 홈: 검색 ---------- */
+async function renderHome() {
+  const token = ++navToken;
+  const input = el('input', { type: 'search', placeholder: '영화 제목 검색 (예: 승부)', autocomplete: 'off', 'aria-label': '영화 제목 검색' });
+  const hint = el('p', { class: 'hint' });
+  const results = el('div', { class: 'grid' });
+  view.replaceChildren(el('div', { class: 'search' }, input), hint, results);
+
+  async function search() {
+    const query = input.value.trim();
+    try {
+      const data = await api('/movies', { query, limit: query ? 40 : 12 });
+      if (token !== navToken) return;
+      hint.textContent = query
+        ? (data.count ? '"' + query + '" 검색 결과 ' + data.count + '건' : '"' + query + '"에 해당하는 영화가 없습니다.')
+        : '전체 영화 중 일부입니다. 제목 일부를 입력해 검색하세요.';
+      results.replaceChildren(...data.items.map((movie) => movieCard(movie)));
+    } catch (error) {
+      hint.textContent = '';
+      results.replaceChildren(el('div', { class: 'error' }, error.message));
+    }
+  }
+  input.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(search, 250); });
+  search();
+  input.focus();
+}
+
+/* ---------- 영화 상세: 추천 / 리뷰 ---------- */
+async function renderMovie(movieId) {
+  const token = ++navToken;
+  showLoading('불러오는 중...');
+  let movie, reco;
+  try {
+    const id = encodeURIComponent(movieId);
+    [movie, reco] = await Promise.all([api('/movies/' + id), api('/recommend/' + id, { top_n: 6 })]);
+  } catch (error) {
+    if (token === navToken) showError(error);
+    return;
+  }
+  if (token !== navToken) return;
+
+  const stat = (value, label) => el('div', { class: 'stat' }, el('b', {}, value), el('span', {}, label));
+  const hero = el('section', { class: 'hero' },
+    el('h2', {}, movie.title),
+    el('div', { class: 'meta' }, metaLine(movie) + (movie.age_rating ? ' · ' + movie.age_rating : '')),
+    el('div', { class: 'stats' },
+      stat(movie.mean_rating === null ? '-' : movie.mean_rating.toFixed(2), '평균 평점 (5점 만점)'),
+      stat(movie.corrected_rating.toFixed(2), '보정 평점'),
+      stat(movie.review_count, '리뷰 수'),
+      stat(movie.rating_count, '평점이 있는 리뷰')));
+
+  const recoPanel = el('div', { class: 'reco', role: 'tabpanel' });
+  const reviewPanel = el('div', { role: 'tabpanel', hidden: '' });
+  const recoTab = el('button', { class: 'tab', type: 'button', role: 'tab', 'aria-selected': 'true' }, '비슷한 영화');
+  const reviewTab = el('button', { class: 'tab', type: 'button', role: 'tab', 'aria-selected': 'false' }, '리뷰');
+
+  if (reco.message) recoPanel.append(el('div', { class: 'notice' }, reco.message));
+  for (const item of reco.items) {
+    recoPanel.append(movieCard(item, el('ul', { class: 'reasons' }, item.reasons.map((reason) => el('li', {}, reason)))));
+  }
+
+  let reviewsLoaded = false;
+  async function loadReviews(order) {
+    reviewList.replaceChildren(el('div', { class: 'loading' }, '불러오는 중...'));
+    try {
+      const data = await api('/movies/' + encodeURIComponent(movieId) + '/reviews', { order, top_n: 10 });
+      if (token !== navToken) return;
+      reviewList.replaceChildren(...(data.items.length
+        ? data.items.map((row) => el('div', { class: 'review' }, el('span', { class: 'rating' }, '★ ' + row.rating.toFixed(1)), el('p', {}, row.review)))
+        : [el('div', { class: 'notice' }, '평점이 있는 리뷰가 없습니다.')]));
+    } catch (error) {
+      reviewList.replaceChildren(el('div', { class: 'error' }, error.message));
+    }
+  }
+  const reviewList = el('div');
+  const orderButtons = ['high', 'low'].map((order) => {
+    const button = el('button', {
+      class: 'tab', type: 'button', 'aria-selected': String(order === 'high'),
+      onclick: () => {
+        orderButtons.forEach((other) => other.setAttribute('aria-selected', String(other === button)));
+        loadReviews(order);
+      },
+    }, order === 'high' ? '높은 평점순' : '낮은 평점순');
+    return button;
+  });
+  reviewPanel.append(el('div', { class: 'seg' }, orderButtons), reviewList);
+
+  recoTab.addEventListener('click', () => {
+    recoTab.setAttribute('aria-selected', 'true'); reviewTab.setAttribute('aria-selected', 'false');
+    recoPanel.hidden = false; reviewPanel.hidden = true;
+  });
+  reviewTab.addEventListener('click', () => {
+    reviewTab.setAttribute('aria-selected', 'true'); recoTab.setAttribute('aria-selected', 'false');
+    recoPanel.hidden = true; reviewPanel.hidden = false;
+    if (!reviewsLoaded) { reviewsLoaded = true; loadReviews('high'); }
+  });
+
+  view.replaceChildren(
+    el('a', { class: 'back', href: '#/' }, '← 검색으로'),
+    hero,
+    el('div', { class: 'tabs', role: 'tablist' }, recoTab, reviewTab),
+    recoPanel, reviewPanel);
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 라우터 ---------- */
+function route() {
+  const match = location.hash.match(/^#\/movie\/(.+)$/);
+  if (match) renderMovie(decodeURIComponent(match[1])); else renderHome();
+}
+window.addEventListener('hashchange', route);
+route();
+
+api('/health').then((health) => {
+  document.getElementById('footer').textContent =
+    '영화 ' + health.movies + '개 · 리뷰 ' + health.reviews.toLocaleString() + '건 · 데이터 버전 ' + health.data_version +
+    ' · 추천 점수는 만족도를 보장하지 않는 참고 값입니다.';
+}).catch(() => {});
+</script>
+</body>
+</html>

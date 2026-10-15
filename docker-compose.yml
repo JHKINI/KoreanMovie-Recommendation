@@ -1,0 +1,22 @@
+# 사용법은 docs/DOCKER.md 참고.
+#   docker compose --profile prepare run --rm pipeline   # 추천 데이터 준비 (처음 한 번, 원본 CSV 갱신 시)
+#   docker compose up --build                            # API 서버 실행
+services:
+  api:
+    build: .
+    ports:
+      # 이 PC 안에서만 접속되도록 127.0.0.1에 묶는다.
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # 준비된 추천 데이터. API는 읽기만 하므로 읽기 전용으로 연결한다.
+      - ./artifacts:/app/artifacts:ro
+
+  # 추천 데이터를 만드는 일회성 작업. 평소 `up`에서는 실행되지 않는다.
+  pipeline:
+    build: .
+    profiles: ["prepare"]
+    command: ["python", "run_pipeline.py"]
+    volumes:
+      # 원본 CSV는 읽기 전용, 결과는 호스트의 artifacts 폴더에 저장된다.
+      - ./Koreanmovie_review.csv:/app/Koreanmovie_review.csv:ro
+      - ./artifacts:/app/artifacts

@@ -1,0 +1,19 @@
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+
+# 데이터와 산출물은 이미지에 넣지 않고 볼륨으로 연결한다.
+*.csv
+artifacts/
+
+# 서비스에 필요 없는 자료
+archive/
+docs/
+*.md
+*.txt
+!requirements.lock.txt
+Dockerfile
+docker-compose.yml
