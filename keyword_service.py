@@ -9,6 +9,7 @@
 """
 
 import re
+from keyword_quality_filter import filter_keyword_items
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
@@ -78,7 +79,7 @@ def build_keywords(profiles, top_n=15, min_df=3, max_df=0.4):
             items.append({'term': term, 'score': round(float(score), 4)})
             if len(items) == top_n:
                 break
-        result[str(movie_id)] = items
+        result[str(movie_id)] = filter_keyword_items(items)
     return result
 
 
