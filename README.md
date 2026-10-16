@@ -281,40 +281,67 @@ GET /health
 ## 📂 Project Structure
 
 ```text
+```text
 KoreanMovie-Recommendation/
 │
-├── api.py                    # FastAPI 서버
-├── recommender.py            # 영화 추천 로직
-├── review_service.py         # 영화 리뷰 조회
-├── data_store.py             # 데이터 로딩 및 조회
-├── pipeline_common.py        # 파이프라인 공통 기능
+├── api.py                       # FastAPI 서버
+├── recommender.py               # 영화 추천 로직
+├── review_service.py            # 영화 리뷰 조회
+├── data_store.py                # 데이터 로딩 및 조회
+├── pipeline_common.py           # 파이프라인 공통 기능
+├── keyword_service.py           # 영화별 대표 키워드 생성 및 조회
+├── keyword_quality_filter.py # 검수 기반 키워드 필터
 │
-├── prepare_data.py           # 데이터 전처리
-├── build_profiles.py         # 영화 프로파일 생성
-├── build_features.py         # 특징 및 유사도 생성
-├── evaluate.py               # 추천 결과 평가
-├── run_pipeline.py           # 전체 데이터 파이프라인 실행
+├── prepare_data.py              # 데이터 전처리
+├── build_profiles.py            # 영화 프로파일 생성
+├── build_features.py            # 특징 및 유사도 생성
+├── evaluate.py                  # 추천 결과 평가
+├── run_pipeline.py              # 전체 데이터 파이프라인 실행
 │
-├── keyword_quality_audit.csv # 제외 대상 키워드 선정
-├── keyword_quality_filter    # 불필요한 키워드 필터
-├── test_pipeline.py          # 파이프라인 테스트
-├── test_prepare_data.py      # 데이터 준비 테스트
-├── verify_backend.py         # 백엔드 검증
+├── keyword_quality_audit.csv    # 키워드 품질 검수 데이터
+├── test_pipeline.py             # 파이프라인 테스트
+├── test_prepare_data.py         # 데이터 준비 테스트
+├── verify_backend.py            # 백엔드 검증
 │
 ├── artifacts/
-│   └── recommendation/       # 추천 시스템 실행 결과
+│   └── recommendation/           # 추천 시스템 실행 결과
 │
 ├── docs/
-│   ├── BACKEND_GUIDE.md
-│   ├── FUNCTIONS.md
-│   ├── CURRENT_STATUS.md
-│   └── FILE_ORGANIZATION.md
+│   ├── BACKEND_GUIDE.md          # 백엔드 가이드
+│   ├── FUNCTIONS.md              # 주요 함수 설명
+│   ├── CURRENT_STATUS.md         # 프로젝트 진행 상태
+│   └── FILE_ORGANIZATION.md      # 파일 구성 안내
 │
+├── frontend/
+│   ├── public/                   # 정적 리소스
+│   ├── src/
+│   │   ├── services/
+│   │   │   └── api.js            # 백엔드 API 통신
+│   │   ├── components/           # 공통 UI 컴포넌트
+│   │   ├── pages/                # 페이지 컴포넌트
+│   │   ├── App.jsx               # 앱 구성
+│   │   ├── App.css               # 앱 스타일
+│   │   ├── index.css             # 전역 스타일
+│   │   └── main.jsx              # React 진입점
+│   ├── package.json              # 프론트엔드 의존성 및 스크립트
+│   ├── package-lock.json         # 의존성 잠금 파일
+│   ├── vite.config.js            # Vite 설정
+│   ├── eslint.config.js          # ESLint 설정
+│   ├── index.html                # HTML 진입점
+│   ├── .gitignore                # 프론트엔드 Git 제외 설정
+│   ├── FRONTEND_STATUS.md        # 프론트엔드 진행 상태
+│   └── README.md                 # 프론트엔드 안내 문서
+│
+├── static/                       # 정적 파일
 ├── archive/
-│   └── rating_prediction/    # 기존 평점 예측 실험
+│   └── rating_prediction/        # 기존 평점 예측 실험
 │
-├── requirements.txt
-└── README.md
+├── .dockerignore                 # Docker 빌드 제외 설정
+├── .gitignore                    # Git 제외 설정
+├── Dockerfile                    # Docker 실행 환경
+├── requirements.txt              # Python 의존성
+└── README.md                     # 프로젝트 전체 안내
+```
 ```
 
 ---
