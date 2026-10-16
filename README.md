@@ -291,6 +291,8 @@ KoreanMovie-Recommendation/
 ├── evaluate.py               # 추천 결과 평가
 ├── run_pipeline.py           # 전체 데이터 파이프라인 실행
 │
+├── keyword_quality_audit.csv # 제외 대상 키워드 선정
+├── keyword_quality_filter    # 불필요한 키워드 필터
 ├── test_pipeline.py          # 파이프라인 테스트
 ├── test_prepare_data.py      # 데이터 준비 테스트
 ├── verify_backend.py         # 백엔드 검증
@@ -437,7 +439,11 @@ Review Rating Prediction
 또한 동일 조건에서 실행했을 때 결과가 일정하게 유지될 수 있도록 정렬 기준을 명시적으로 구성했습니다.
 
 ---
-
+### 대표 키워드 품질 개선
+- 검수 결과 `manual_label = 0`인 21개 키워드를 제외 대상으로 선정
+- `keyword_quality_filter_21.py` 모듈을 추가해 기존 키워드 생성 로직과 분리
+- 최종 대표 키워드 목록에 필터를 적용하여 불필요한 표현을 제외
+- 
 ## 💡 Key Points
 
 ### 1. 단순 평점순 추천에서 확장
@@ -464,19 +470,6 @@ Review Rating Prediction
 ### 4. API 서비스화
 
 추천 알고리즘을 Python 코드 실행에만 머무르지 않고 **FastAPI REST API**로 연결하여 외부 클라이언트에서 사용할 수 있는 형태로 구성했습니다.
-
----
-
-## 📈 Future Work
-
-- [ ] 영화 포스터 및 상세 정보 제공
-- [ ] 웹 프론트엔드 구현
-- [ ] 사용자 기반 개인화 추천
-- [ ] 협업 필터링 적용
-- [ ] 추천 모델 성능 비교
-- [ ] 추천 결과 평가 지표 고도화
-- [ ] Docker 기반 배포
-- [ ] 클라우드 서버 배포
 
 ---
 
@@ -511,4 +504,4 @@ Review Rating Prediction
 
 ---
 
-> **Project Status:** Recommendation Backend 구현 완료 / Frontend 미구현
+> **Project Status:** Recommendation Backend 구현 완료 / Frontend 구현완료 /
