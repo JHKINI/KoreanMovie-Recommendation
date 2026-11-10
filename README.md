@@ -8,9 +8,30 @@
 
 
 ---
+## 화면 구성
+
+### 1. 홈 화면
+메인 화면으로 영화 검색 기능과 평점 및 리뷰가 많은 영화 목록을 제공합니다.
+
+| 홈 화면 |
+| :---: |
+| <img src="img/korea-movie-review-home.png" width="700" alt="홈 화면"> |
+
+### 2. 취향 추천
+좋아하는 영화를 2~5편 선택하여 추가하면 선택한 영화를 기반으로 취향에 맞는 영화를 추천합니다.
+
+| 취향 추천 화면 |
+| :---: |
+| <img src="img/korea-movie-review-pick.png" width="700" alt="취향 추천 화면"> |
+
+### 3. 취향 추천 결과
+사용자가 선택한 영화들을 종합적으로 고려하여 유사한 영화를 추천합니다.
+
+| 취향 추천 결과 화면 |
+| :---: |
+| <img src="img/korea-movie-review-result.png" width="700" alt="취향 추천 결과 화면"> |
 
 ## 📌 Project Overview
-
 ### 목적
 
 영화의 단순 평점 순위가 아닌,
@@ -358,8 +379,6 @@ KoreanMovie-Recommendation/
 ```text
 Koreanmovie_review.csv
 ```
-
-데이터 재배포 및 이용 조건은 원본 데이터 제공처의 정책을 확인해야 합니다.
 
 ---
 
